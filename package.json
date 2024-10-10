@@ -1,0 +1,36 @@
+{
+  "name": "alusoft-portal",
+  "version": "1.0.0",
+  "description": "ALusoft Training Portal",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Godswillconcept/alusoft-portal.git"
+  },
+  "keywords": [
+    "expressjs",
+    "nodejs",
+    "mysql",
+    "sql",
+    "html",
+    "css",
+    "bootstrap",
+    "ejs",
+    "javascript"
+  ],
+  "author": "Olatunji Abass Adewale",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Godswillconcept/alusoft-portal/issues"
+  },
+  "homepage": "https://github.com/Godswillconcept/alusoft-portal#readme",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "lodash": "^4.17.21",
+    "mysql2": "^3.11.3"
+  }
+}

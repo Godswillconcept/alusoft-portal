@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alusoft Training Portal</title>
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5>Create Course</h5>
+        <a href="/courses">All Courses</a>
+      </div>
+      <form action="/courses" method="post">
+        <div class="form-group mb-3">
+          <label for="name" class="form-label">Name</label>
+          <input type="text" name="name" id="name" class="form-control"/>
+        </div>
+        <div class="form-group mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea name="description" id="description" class="form-control"></textarea>
+        </div>
+        <div class="form-group mb-3">
+          <label for="duration" class="form-label">Duration (in weeks)</label>
+          <input type="number" name="duration" id="duration" class="form-control"/>
+        </div>
+        <button type="submit" class="btn btn-success">Create Course</button>
+      </form>
+    </div>
+  </body>
+</html>
