@@ -11,29 +11,32 @@
   <body>
     <div class="container">
       <div class="d-flex justify-content-between align-items-center">
-        <h1>Students List</h1>
-        <a href="/students/create" class="btn btn-primary">Add Students</a>
+        <h1>Instructors List</h1>
+        <a href="/instructors/create" class="btn btn-primary">Add Instructors</a>
       </div>
       <table class="table table-bordered table-striped table-sm">
         <tr>
           <th>Name</th>
-
           <th>Phone</th>
           <th>Gender</th>
           <th>Programme</th>
+          <th>Salary</th>
+          <th>Qualification</th>
           <th>Photo</th>
         </tr>
 
-        <% for( const student of students ) { %>
+        <% for( const instructor of instructors ) { %>
         <tr>
           <td>
-            <%= student.surname %> <%= student.first_name %> <%=
-            student.other_name %>
+            <%= instructor.surname %> <%= instructor.first_name %> <%=
+            instructor.other_name %>
           </td>
-          <td><%= student.phone %></td>
-          <td><%= student.gender %></td>
-          <td><%= student.programme %></td>
-          <td><%= student.photo %></td>
+          <td><%= instructor.phone %></td>
+          <td><%= instructor.gender %></td>
+          <td><%= instructor.programme %></td>
+          <td><%= instructor.salary %></td>
+          <td><%= instructor.qualification %></td>
+          <td><%= instructor.photo %></td>
         </tr>
         <% } %>
       </table>

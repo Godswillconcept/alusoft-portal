@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/bootstrap/js/bootstrap.bundle.min.js" />
+    <title>Alusoft Portal</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1>Add Students</h1>
+        <a href="/students" class="btn btn-danger">Students List</a>
+      </div>
+
+      <form action="/students" method="post">
+        <div class="form-group mb-3">
+          <label for="surname">Surname</label>
+          <input
+            type="text"
+            class="form-control"
+            id="surname"
+            name="surname"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="first_name">First Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="first_name"
+            name="first_name"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="other_name">Other Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="other_name"
+            name="other_name"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="address">Address</label>
+          <input
+            type="text"
+            class="form-control"
+            id="address"
+            name="address"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="phone">Phone</label>
+          <input
+            type="number"
+            class="form-control"
+            id="phone"
+            name="phone"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="password">Password</label>
+          <input
+            type="text"
+            class="form-control"
+            id="password"
+            name="password"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="dob">Date of Birth</label>
+          <input
+            type="date"
+            class="form-control"
+            id="dob"
+            name="dob"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="gender">Gender</label>
+          <select class="form-control" id="gender" name="gender" required>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="guardian_name">Guardian Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="guardian_name"
+            name="guardian_name"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="guardian_phone">Guardian Phone</label>
+          <input
+            type="number"
+            class="form-control"
+            id="guardian_phone"
+            name="guardian_phone"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="guardian_address">Guardian Address</label>
+          <input
+            type="text"
+            class="form-control"
+            id="guardian_address"
+            name="guardian_address"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="guardian_email">Guardian Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="guardian_email"
+            name="guardian_email"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="photo">Photo</label>
+          <input
+            type="file"
+            class="form-control"
+            id="photo"
+            name="photo"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="status">Status</label>
+          <select class="form-control" id="status" name="status" required>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+  </body>
+</html>
