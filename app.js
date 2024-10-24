@@ -1,8 +1,35 @@
 const express = require("express");
 const app = express();
 const { join } = require("path");
-const conn = require("./models/connection");
-const Course = require("./models/Course");
+const {
+  getAllCourses,
+  createCourse,
+  getCourseById,
+  updateCourse,
+  deleteCourse,
+} = require("./controllers/courseController");
+const {
+  getAllProgrammes,
+  getProgrammeById,
+  createProgramme,
+  updateProgramme,
+  deleteProgramme,
+  attachCourses,
+  viewCourses,
+  detachCourses,
+  enrolment,
+} = require("./controllers/programmeController");
+const {
+  getAllInstructors,
+  getInstructorById,
+  createInstructor,
+  updateInstructor,
+  deleteInstructor,
+  unbindCourses,
+  showCourses,
+  bindCourses,
+} = require("./controllers/instructorController");
+const { getAllStudents, getStudentById, createStudent, updateStudent, deleteStudent, programmeEnroll } = require("./controllers/studentController");
 require("dotenv").config({ path: "./.env" });
 const PORT = process.env.PORT || 3000;
 
@@ -17,105 +44,55 @@ app.set("views", "views");
 
 app.get("/", (req, res) => {
   //   res.send(`<h1>Alusoft Training Portal</h1>`);
-  res.render("index");
+  // res.render("index");
+  res.json({
+    status: "success",
+    message: "Welcome to Alusoft Training Portal",
+  });
 });
 
-app.delete("/courses/:id/delete", async (req, res) => {
-  const { id } = req.params; // destructuring the id from  request parameter object
-  try {
-    const course = await Course.delete(id); // deleting course in the database
-    res.json({
-      status: "success",
-      message: "Course deleted successfully",
-      data: course,
-    });
-  } catch (error) {
-    res.json({
-      status: "failed",
-      message: "Deleting entry failed",
-      data: error,
-    });
-  }
-})
-app.put("/courses/:id/update", async (req, res) => {
-  const { id } = req.params; // destructuring the id from  request parameter object
-  const { name, description, duration } = req.body; // destructuring data from req.body
-  const course = new Course(name, description, duration); // create course object from Course class
-  try {
-    const result = await course.update(id); // updating course in the database
-    res.json({
-      status: "success",
-      message: "Course updated successfully",
-      data: result,
-    });
-  } catch (error) {
-    res.json({
-      status: "failed",
-      message: "Updating entry failed",
-      data: error,
-    });
-  }
+app.get("/api", (req, res) => {
+  res.json({
+    status: "success",
+    message: "Alusoft Training Portal API endpoint",
+  });
 });
-app.get("/courses/:id", async (req, res) => {
-  const { id } = req.params; // destructuring the id from  request parameter object
-  try {
-    const course = await Course.findById(id);
-    if (course) {
-      res.json({
-        status: "success",
-        message: "Course retrieved successfully",
-        data: course,
-      });
-    } else {
-      res.json({
-        status: "failed",
-        message: "Course retrieved failed",
-      });
-    }
-  } catch (error) {
-    res.json({
-      status: "failed",
-      message: "Course retrieved failed",
-      data: error,
-    });
-  }
-});
-app.get("/courses", async (req, res) => {
-  try {
-    const courses = await Course.findAll();
-    res.json({
-      status: "success",
-      message: "All courses retrieved successfully",
-      data: courses,
-    });
-  } catch (error) {
-    console.log("error", error);
-    res.json({
-      status: "failed",
-      message: "Error while retrieving courses",
-      data: error,
-    });
-  }
-});
-app.post("/courses", async (req, res) => {
-  const { name, description, duration } = req.body; // destructuring data from req.body
-  const course = new Course(name, description, duration); // create course object from Course class
-  try {
-    const result = await course.create(); // create course and saving to database
-    res.json({
-      status: "success",
-      message: "New course created successfully",
-      data: result,
-    });
-  } catch (error) {
-    console.log("error", error);
-    res.json({
-      status: "failed",
-      message: "Error while creating new entry",
-      data: error,
-    });
-  }
-});
+
+// routes for courses
+app.get("/courses", getAllCourses);
+app.get("/courses/:id", getCourseById);
+app.post("/courses", createCourse);
+app.put("/courses/:id/update", updateCourse);
+app.delete("/courses/:id/delete", deleteCourse);
+
+// routes for programmes
+app.get("/programmes", getAllProgrammes);
+app.get("/programmes/:id", getProgrammeById);
+app.post("/programmes", createProgramme);
+app.put("/programmes/:id/update", updateProgramme);
+app.delete("/programmes/:id/delete", deleteProgramme);
+app.get("/programmes/:id/courses", viewCourses);
+app.post("/programmes/:id/courses", attachCourses);
+app.delete("/programmes/:id/courses", detachCourses);
+app.get("/programmes/:id/enroll",  enrolment);
+
+// routes for instructors
+app.get("/instructors", getAllInstructors);
+app.get("/instructors/:id", getInstructorById);
+app.post("/instructors", createInstructor);
+app.put("/instructors/:id/update", updateInstructor);
+app.delete("/instructors/:id/delete", deleteInstructor);
+app.get("/instructors/:id/courses", showCourses);
+app.post("/instructors/:id/courses", bindCourses);
+app.delete("/instructors/:id/courses", unbindCourses);
+
+// routes for students
+app.get("/students", getAllStudents);
+app.get("/students/:id", getStudentById);
+app.post("/students", createStudent);
+app.put("/students/:id/update", updateStudent);
+app.delete("/students/:id/delete", deleteStudent);
+app.post("/students/:id/enroll", programmeEnroll);
 
 app.listen(PORT, () =>
   console.log(

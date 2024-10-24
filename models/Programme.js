@@ -1,55 +1,44 @@
 const conn = require("./connection");
-class Course {
-  constructor(name, description, duration, id = null) {
+
+class Programme {
+  constructor(name, description, session, tuition, id = null) {
     this.name = name;
     this.description = description;
-    this.duration = duration;
+    this.session = session;
+    this.tuition = tuition;
     this.id = id;
-    this.created_at = Date.now();
-    this.updated_at = Date.now();
   }
 
   // CRUD - Create, Read/Retrieve, Update, Delete
   async create() {
-    const columns = [
-      "name",
-      "description",
-      "duration",
-      "created_at",
-      "updated_at",
-    ];
-    const values = [
-      this.name,
-      this.description,
-      this.duration,
-      this.created_at,
-      this.updated_at,
-    ];
+    const columns = ["name", "description", "session", "tuition"];
+    const values = [this.name, this.description, this.session, this.tuition];
     const ent = "?".repeat(columns.length).split("").join(", ");
     try {
-      const sql = `INSERT INTO courses (${columns.join(", ")}) VALUES(${ent})`;
+      const sql = `INSERT INTO programmes (${columns.join(
+        ", "
+      )}) VALUES(${ent})`;
       const [result] = await conn.execute(sql, values);
       this.id = result.insertId;
-      return this;
+      return this
     } catch (error) {
       throw error;
     }
   }
 
   static async findAll() {
-    const sql = `SELECT * FROM courses`;
+    const sql = `SELECT * FROM programmes`;
+    const results = [];
     try {
-      const results = [];
       const [rows] = await conn.execute(sql);
       for (let row of rows) {
         results.push(
-          new Course(
+          new Programme(
+            row.id,
             row.name,
             row.description,
-            row.duration,
-            row.id,
-            row.created_at,
-            row.updated_at
+            row.session,
+            row.tuition
           )
         );
       }
@@ -60,19 +49,18 @@ class Course {
   }
 
   static async findById(id) {
-    const sql = `SELECT * FROM courses WHERE id = ?`;
+    const sql = `SELECT * FROM programmes WHERE id = ?`;
     try {
       const [results] = await conn.execute(sql, [id]);
       if (results.length === 0) {
         return null;
       }
-      return new Course(
+      return new Programme(
+        results[0].id,
         results[0].name,
         results[0].description,
-        results[0].duration,
-        results[0].id,
-        results[0].created_at,
-        results[0].updated_at
+        results[0].session,
+        results[0].tuition
       );
     } catch (error) {
       throw error;
@@ -80,13 +68,12 @@ class Course {
   }
 
   async update() {
-    this.updated_at = Date.now();
-    const sql = `UPDATE courses SET name = ?, description = ?, duration = ?, updated_at = ? WHERE id = ?`;
+    const sql = `UPDATE programmes SET name = ?, description = ?, session = ?, tuition = ? WHERE id = ?`;
     const values = [
       this.name,
       this.description,
-      this.duration,
-      this.updated_at,
+      this.session,
+      this.tuition,
       this.id,
     ];
     try {
@@ -98,7 +85,7 @@ class Course {
   }
 
   async delete() {
-    const sql = `DELETE FROM courses WHERE id = ?`;
+    const sql = `DELETE FROM programmes WHERE id = ?`;
     try {
       const [result] = await conn.execute(sql, [this.id]);
       return result;
@@ -106,6 +93,15 @@ class Course {
       throw error;
     }
   }
-
+  static async delete(id) {
+    const sql = `DELETE FROM programmes WHERE id = ?`;
+    try {
+      const [result] = await conn.execute(sql, [id]);
+      return result.affectedRows > 0;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
-module.exports = Course;
+
+module.exports = Programme;
