@@ -29,7 +29,23 @@ const {
   showCourses,
   bindCourses,
 } = require("./controllers/instructorController");
-const { getAllStudents, getStudentById, createStudent, updateStudent, deleteStudent, programmeEnroll } = require("./controllers/studentController");
+const {
+  getAllStudents,
+  getStudentById,
+  createStudent,
+  updateStudent,
+  deleteStudent,
+  programmeEnroll,
+  paymentBalance,
+} = require("./controllers/studentController");
+const {
+  getAllPayments,
+  getPaymentById,
+  getPaymentByStudent,
+  createPayment,
+  updatePayment,
+  deletePayment,
+} = require("./controllers/paymentController");
 require("dotenv").config({ path: "./.env" });
 const PORT = process.env.PORT || 3000;
 
@@ -74,7 +90,7 @@ app.delete("/programmes/:id/delete", deleteProgramme);
 app.get("/programmes/:id/courses", viewCourses);
 app.post("/programmes/:id/courses", attachCourses);
 app.delete("/programmes/:id/courses", detachCourses);
-app.get("/programmes/:id/enroll",  enrolment);
+app.get("/programmes/:id/enroll", enrolment);
 
 // routes for instructors
 app.get("/instructors", getAllInstructors);
@@ -93,6 +109,15 @@ app.post("/students", createStudent);
 app.put("/students/:id/update", updateStudent);
 app.delete("/students/:id/delete", deleteStudent);
 app.post("/students/:id/enroll", programmeEnroll);
+app.get("/students/:id/programmes/:programme_id/balance", paymentBalance);
+
+// routes for payments
+app.get("/payments", getAllPayments);
+app.get("/payments/:id", getPaymentById);
+app.get("/payments/:student_id/payments", getPaymentByStudent);
+app.post("/payments", createPayment);
+app.put("/payments/:id/update", updatePayment);
+app.delete("/payments/:id/delete", deletePayment);
 
 app.listen(PORT, () =>
   console.log(

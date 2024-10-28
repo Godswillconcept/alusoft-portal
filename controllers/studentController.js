@@ -1,5 +1,6 @@
 const Student = require("../models/Student");
 const StudentProgramme = require("../models/StudentProgramme");
+const conn = require("../models/connection");
 
 const getAllStudents = async (req, res) => {
   const students = await Student.findAll();
@@ -178,6 +179,23 @@ const programmeEnroll = async (req, res) => {
   }
 };
 
+const paymentBalance = async (req, res) => {
+  const { id, programme_id } = req.params; // student id & programme id
+  let amount_paid, amount_balance, tuition;
+  const sql = `SELECT SUM(amount) AS amount_paid FROM payments WHERE student_id = ?`;
+  const [results] = await conn.execute(sql, [id]); // where id refers to student id
+  amount_paid = results[0].amount_paid;
+  const query = `SELECT tuition FROM programmes WHERE id = ?`;
+  const [rows] = await conn.execute(query, [programme_id]); // where programme_id refers to programme id
+  tuition = rows[0].tuition;
+  amount_balance = tuition - amount_paid;
+  res.json({
+    status: "success",
+    message: "Student balance retrieved successfully",
+    data: { amount_paid, amount_balance },
+  });
+};
+
 module.exports = {
   getAllStudents,
   getStudentById,
@@ -185,4 +203,5 @@ module.exports = {
   updateStudent,
   deleteStudent,
   programmeEnroll,
+  paymentBalance,
 };

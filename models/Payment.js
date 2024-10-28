@@ -54,12 +54,12 @@ class Payment {
       for (let row of rows) {
         results.push(
           new Payment(
-            row.id,
             row.student_id,
             row.programme_id,
             row.amount,
             row.payment_date,
-            row.payment_method
+            row.payment_method,
+            row.id,
           )
         );
       }
@@ -77,13 +77,36 @@ class Payment {
         return null;
       }
       return new Payment(
-        results[0].id,
         results[0].student_id,
         results[0].programme_id,
         results[0].amount,
         results[0].payment_date,
-        results[0].payment_method
+        results[0].payment_method,
+        results[0].id,
       );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async findPaymentByStudent(student_id) {
+    const sql = `SELECT * FROM payments WHERE student_id = ?`;
+    try {
+      const results = [];
+      const [rows] = await conn.execute(sql, [student_id]);
+      for (let row of rows) {
+        results.push(
+          new Payment(
+            row.student_id,
+            row.programme_id,
+            row.amount,
+            row.payment_date,
+            row.payment_method,
+            row.id
+          )
+        );
+      }
+      return results;
     } catch (error) {
       throw error;
     }
