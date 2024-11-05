@@ -28,9 +28,12 @@
   },
   "homepage": "https://github.com/Godswillconcept/alusoft-portal#readme",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
+    "express-fileupload": "^1.5.1",
+    "express-validator": "^7.2.0",
     "lodash": "^4.17.21",
     "mysql2": "^3.11.3"
   }

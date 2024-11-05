@@ -179,7 +179,6 @@ class Instructor {
         return null;
       }
       return new Instructor(
-        results[0].id,
         results[0].title,
         results[0].surname,
         results[0].first_name,
@@ -192,7 +191,8 @@ class Instructor {
         results[0].employment_date,
         results[0].photo,
         results[0].password,
-        results[0].status
+        results[0].status,
+        results[0].id
       );
     } catch (error) {
       throw error;
@@ -201,4 +201,3 @@ class Instructor {
 }
 
 module.exports = Instructor;
-

@@ -20,7 +20,7 @@ class Programme {
       )}) VALUES(${ent})`;
       const [result] = await conn.execute(sql, values);
       this.id = result.insertId;
-      return this
+      return this;
     } catch (error) {
       throw error;
     }
@@ -56,11 +56,11 @@ class Programme {
         return null;
       }
       return new Programme(
-        results[0].id,
         results[0].name,
         results[0].description,
         results[0].session,
-        results[0].tuition
+        results[0].tuition,
+        results[0].id
       );
     } catch (error) {
       throw error;

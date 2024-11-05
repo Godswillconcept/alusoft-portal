@@ -1,6 +1,8 @@
 const Student = require("../models/Student");
 const StudentProgramme = require("../models/StudentProgramme");
 const conn = require("../models/connection");
+const bcrypt = require("bcrypt");
+const { unlinkSync } = require("fs");
 
 const getAllStudents = async (req, res) => {
   const students = await Student.findAll();
@@ -52,9 +54,23 @@ const createStudent = async (req, res) => {
     guardian_email,
     guardian_address,
     password,
-    photo,
     status,
   } = req.body;
+  const { photo } = req.files;
+  if (photo) {
+    var fileName =
+      Number(new Date()).toString(32) + Math.random().toString(32).substring(2); // dynamic file name
+    let ext = photo.name.split(".").pop();
+    fileName = fileName + "." + ext;
+    let uploadPath = "uploads/students/" + fileName;
+    photo.mv(uploadPath, function (err) {
+      if (err) {
+        console.log(err);
+      }
+      console.log("Student photo uploaded successfully");
+    });
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
   let student = new Student(
     surname,
     first_name,
@@ -68,8 +84,8 @@ const createStudent = async (req, res) => {
     guardian_phone,
     guardian_email,
     guardian_address,
-    password,
-    photo,
+    hashedPassword,
+    `students/${fileName}`,
     status
   );
   try {
@@ -80,6 +96,7 @@ const createStudent = async (req, res) => {
       data: student,
     });
   } catch (error) {
+    unlinkSync(`uploads/students${student.photo}`); // remove photo if there is error
     res.json({
       status: "failed",
       message: "New student created failed",
@@ -104,9 +121,28 @@ const updateStudent = async (req, res) => {
     guardian_email,
     guardian_address,
     password,
-    photo,
     status,
   } = req.body;
+
+  if (req.files && req.files.photo) {
+    const { photo } = req.files;
+
+    if (photo) {
+      var fileName =
+        Number(new Date()).toString(32) +
+        Math.random().toString(32).substring(2); // dynamic file name
+      let ext = photo.name.split(".").pop();
+      fileName = fileName + "." + ext;
+      let uploadPath = "uploads/students/" + fileName;
+      photo.mv(uploadPath, function (err) {
+        if (err) {
+          console.log(err);
+        }
+        console.log("Student photo uploaded successfully");
+      });
+      student.photo = `students/${fileName}`;
+    }
+  }
   let student = await Student.findById(id);
   student.surname = surname || student.surname;
   student.first_name = first_name || student.first_name;
@@ -120,17 +156,20 @@ const updateStudent = async (req, res) => {
   student.guardian_phone = guardian_phone || student.guardian_phone;
   student.guardian_email = guardian_email || student.guardian_email;
   student.guardian_address = guardian_address || student.guardian_address;
-  student.password = password || student.password;
-  student.photo = photo || student.photo;
+  student.password = password
+    ? await bcrypt.hash(password, 10)
+    : student.password;
   student.status = status || student.status;
+
   try {
-    student = await student.update();
+    await student.update();
     res.json({
       status: "success",
       message: "Student updated successfully",
       data: student,
     });
   } catch (error) {
+    unlinkSync("uploads/students" + student.photo); // remove uploaded file when error surfaces
     res.json({
       status: "failed",
       message: "Student updated failed",
@@ -192,7 +231,32 @@ const paymentBalance = async (req, res) => {
   res.json({
     status: "success",
     message: "Student balance retrieved successfully",
-    data: { amount_paid, amount_balance },
+    data: { amount_paid, amount_balance, tuition },
+  });
+};
+
+const studentLogin = async (req, res) => {
+  const { email, password } = req.body;
+  const student = await Student.findByEmail(email);
+  if (!student) {
+    return res.json({
+      status: "failed",
+      message: "Student does not exist",
+    });
+  }
+
+  const passwordCheck = bcrypt.compareSync(password, student.password); // return boolean
+  if (!passwordCheck) {
+    return res.json({
+      status: "failed",
+      message: "Invalid password",
+    });
+  }
+
+  return res.json({
+    status: "success",
+    message: "Student login successfully",
+    data: student,
   });
 };
 
@@ -204,4 +268,5 @@ module.exports = {
   deleteStudent,
   programmeEnroll,
   paymentBalance,
+  studentLogin,
 };

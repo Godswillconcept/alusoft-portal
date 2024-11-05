@@ -184,6 +184,7 @@ class Student {
       this.password,
       this.photo,
       this.status,
+      this.id,
     ];
 
     const sql = `UPDATE students SET ${columns
@@ -191,7 +192,7 @@ class Student {
       .join(", ")} WHERE id =?`;
     try {
       const [result] = await conn.execute(sql, values);
-      return result;
+      return result.affectedRows > 0;
     } catch (error) {
       throw error;
     }
@@ -224,7 +225,6 @@ class Student {
         return null;
       }
       return new Student(
-        rows[0].id,
         rows[0].surname,
         rows[0].first_name,
         rows[0].other_name,
@@ -239,7 +239,8 @@ class Student {
         rows[0].guardian_address,
         rows[0].password,
         rows[0].photo,
-        rows[0].status
+        rows[0].status,
+        rows[0].id
       );
     } catch (error) {
       throw error;

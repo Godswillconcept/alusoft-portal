@@ -1,66 +1,33 @@
 const express = require("express");
 const app = express();
 const { join } = require("path");
-const {
-  getAllCourses,
-  createCourse,
-  getCourseById,
-  updateCourse,
-  deleteCourse,
-} = require("./controllers/courseController");
-const {
-  getAllProgrammes,
-  getProgrammeById,
-  createProgramme,
-  updateProgramme,
-  deleteProgramme,
-  attachCourses,
-  viewCourses,
-  detachCourses,
-  enrolment,
-} = require("./controllers/programmeController");
-const {
-  getAllInstructors,
-  getInstructorById,
-  createInstructor,
-  updateInstructor,
-  deleteInstructor,
-  unbindCourses,
-  showCourses,
-  bindCourses,
-} = require("./controllers/instructorController");
-const {
-  getAllStudents,
-  getStudentById,
-  createStudent,
-  updateStudent,
-  deleteStudent,
-  programmeEnroll,
-  paymentBalance,
-} = require("./controllers/studentController");
-const {
-  getAllPayments,
-  getPaymentById,
-  getPaymentByStudent,
-  createPayment,
-  updatePayment,
-  deletePayment,
-} = require("./controllers/paymentController");
 require("dotenv").config({ path: "./.env" });
 const PORT = process.env.PORT || 3000;
+const adminRoute = require("./routes/admin");
+const clientRoute = require("./routes/client");
+const fileUpload = require("express-fileupload");
 
 // middlewares
 app.use(express.static(join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true })); // encoding url
+app.use(express.static("uploads"));
 app.use(express.json());
-
+app.use(
+  fileUpload({
+    limits: { fileSize: 50 * 1024 * 1024 }, // file size limit of 50mb
+    useTempFiles: true,
+    tempFileDir: "./tmp/",
+  })
+);
 // set view engines
 app.set("view engine", "ejs");
 app.set("views", "views");
 
+// routes
+app.use("/admin", adminRoute);
+app.use(clientRoute);
+
 app.get("/", (req, res) => {
-  //   res.send(`<h1>Alusoft Training Portal</h1>`);
-  // res.render("index");
   res.json({
     status: "success",
     message: "Welcome to Alusoft Training Portal",
@@ -73,51 +40,6 @@ app.get("/api", (req, res) => {
     message: "Alusoft Training Portal API endpoint",
   });
 });
-
-// routes for courses
-app.get("/courses", getAllCourses);
-app.get("/courses/:id", getCourseById);
-app.post("/courses", createCourse);
-app.put("/courses/:id/update", updateCourse);
-app.delete("/courses/:id/delete", deleteCourse);
-
-// routes for programmes
-app.get("/programmes", getAllProgrammes);
-app.get("/programmes/:id", getProgrammeById);
-app.post("/programmes", createProgramme);
-app.put("/programmes/:id/update", updateProgramme);
-app.delete("/programmes/:id/delete", deleteProgramme);
-app.get("/programmes/:id/courses", viewCourses);
-app.post("/programmes/:id/courses", attachCourses);
-app.delete("/programmes/:id/courses", detachCourses);
-app.get("/programmes/:id/enroll", enrolment);
-
-// routes for instructors
-app.get("/instructors", getAllInstructors);
-app.get("/instructors/:id", getInstructorById);
-app.post("/instructors", createInstructor);
-app.put("/instructors/:id/update", updateInstructor);
-app.delete("/instructors/:id/delete", deleteInstructor);
-app.get("/instructors/:id/courses", showCourses);
-app.post("/instructors/:id/courses", bindCourses);
-app.delete("/instructors/:id/courses", unbindCourses);
-
-// routes for students
-app.get("/students", getAllStudents);
-app.get("/students/:id", getStudentById);
-app.post("/students", createStudent);
-app.put("/students/:id/update", updateStudent);
-app.delete("/students/:id/delete", deleteStudent);
-app.post("/students/:id/enroll", programmeEnroll);
-app.get("/students/:id/programmes/:programme_id/balance", paymentBalance);
-
-// routes for payments
-app.get("/payments", getAllPayments);
-app.get("/payments/:id", getPaymentById);
-app.get("/payments/:student_id/payments", getPaymentByStudent);
-app.post("/payments", createPayment);
-app.put("/payments/:id/update", updatePayment);
-app.delete("/payments/:id/delete", deletePayment);
 
 app.listen(PORT, () =>
   console.log(

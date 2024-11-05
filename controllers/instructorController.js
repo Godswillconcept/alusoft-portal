@@ -1,6 +1,8 @@
 const Instructor = require("../models/Instructor");
 const InstructorCourse = require("../models/InstructorCourse");
 const Course = require("../models/Course");
+const bcrypt = require("bcrypt");
+const { unlinkSync } = require("fs");
 
 const getAllInstructors = async (req, res) => {
   const instructors = await Instructor.findAll();
@@ -49,10 +51,24 @@ const createInstructor = async (req, res) => {
     phone,
     dob,
     employment_date,
-    photo,
     password,
     status,
   } = req.body;
+  const { photo } = req.files;
+  if (photo) {
+    var fileName =
+      Number(new Date()).toString(32) + Math.random().toString(32).substring(2); // dynamic file name
+    let ext = photo.name.split(".").pop();
+    fileName = fileName + "." + ext;
+    let uploadPath = "uploads/instructors/" + fileName;
+    photo.mv(uploadPath, function (err) {
+      if (err) {
+        console.log(err);
+      }
+      console.log("Instructor photo uploaded successfully");
+    });
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
   let instructor = new Instructor(
     title,
     surname,
@@ -64,8 +80,8 @@ const createInstructor = async (req, res) => {
     phone,
     dob,
     employment_date,
-    photo,
-    password,
+    `instructors/${fileName}`,
+    hashedPassword,
     status
   );
   try {
@@ -76,6 +92,7 @@ const createInstructor = async (req, res) => {
       data: instructor,
     });
   } catch (error) {
+    unlinkSync("uploads/instructors/" + instructor.photo);
     res.json({
       status: "failed",
       message: "An error occurred while creating",
@@ -98,10 +115,31 @@ const updateInstructor = async (req, res) => {
     phone,
     dob,
     employment_date,
-    photo,
     password,
     status,
   } = req.body; // updated values for instructor
+  if (req.files && req.files.photo) {
+    const { photo } = req.files;
+    if (photo) {
+      var fileName =
+        Number(new Date()).toString(32) +
+        Math.random().toString(32).substring(2); // dynamic file name
+      let ext = photo.name.split(".").pop();
+      fileName = fileName + "." + ext;
+      let uploadPath = "uploads/instructors/" + fileName;
+      photo.mv(uploadPath, function (err) {
+        if (err) {
+          console.log(err);
+        }
+        console.log("Instructor photo uploaded successfully");
+      });
+
+      instructor.photo = `instructors/${fileName}`;
+    }
+  }
+  if (password) {
+    var hashedPassword = await bcrypt.hash(password, 10);
+  }
   instructor.title = title || instructor.title;
   instructor.surname = surname || instructor.surname;
   instructor.first_name = first_name || instructor.first_name;
@@ -112,8 +150,7 @@ const updateInstructor = async (req, res) => {
   instructor.phone = phone || instructor.phone;
   instructor.dob = dob || instructor.dob;
   instructor.employment_date = employment_date || instructor.employment_date;
-  instructor.photo = photo || instructor.photo;
-  instructor.password = password || instructor.password;
+  instructor.password = hashedPassword || instructor.password;
   instructor.status = status || instructor.status;
 
   try {
@@ -124,6 +161,8 @@ const updateInstructor = async (req, res) => {
       data: instructor,
     });
   } catch (error) {
+    unlinkSync("uploads/instructors" + instructor.photo); // delete old photo if exists
+    console.log(error);
     res.json({
       status: "failed",
       message: "An error occurred while updating",
@@ -217,11 +256,15 @@ const unbindCourses = async (req, res) => {
 const showCourses = async (req, res) => {
   const { id } = req.params; // instructor id
   const course_ids = await InstructorCourse.findCoursesByInstructor(id); // array of course ids
-  const courses = [];
+  let courses = [];
   try {
-    for (let course_id of course_ids) {
-      const course = await Course.findById(course_id); // find course by id
-      courses.push(course);
+    if (course_ids === null) {
+      courses = "No course attached";
+    } else {
+      for (let course_id of course_ids) {
+        const course = await Course.findById(course_id); // find course by id
+        courses.push(course);
+      }
     }
     res.json({
       status: "success",
@@ -237,6 +280,29 @@ const showCourses = async (req, res) => {
   }
 };
 
+const instructorLogin = async (req, res) => {
+  const { email, password } = req.body;
+  const instructor = await Instructor.findByEmail(email);
+  if (!instructor) {
+    return res.json({
+      status: "failed",
+      message: "Instructor does not exist",
+    });
+  }
+  const passwordCheck = bcrypt.compareSync(password, instructor.password); // return boolean
+  if (!passwordCheck) {
+    return res.json({
+      status: "failed",
+      message: "Invalid password",
+    });
+  }
+  return res.json({
+    status: "success",
+    message: "Instructor login successfully",
+    data: instructor,
+  });
+};
+
 module.exports = {
   getAllInstructors,
   getInstructorById,
@@ -246,4 +312,5 @@ module.exports = {
   bindCourses,
   unbindCourses,
   showCourses,
+  instructorLogin,
 };

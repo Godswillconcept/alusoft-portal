@@ -109,12 +109,18 @@ const attachCourses = async (req, res) => {
 
     // Retrieve existing courses for the programme
     const dbCourses = await ProgrammeCourse.findCoursesByProgramme(id);
+    // console.log('dbCourses', dbCourses); return
     const formCourses = courses.map(Number); // Ensure they are numbers
 
     // Filter out courses that are already attached
-    const newCourses = formCourses.filter(
-      (course) => !dbCourses.includes(course)
-    );
+    let newCourses;
+    if (dbCourses === null) {
+      newCourses = formCourses;
+    } else if (dbCourses.length > 0) {
+      newCourses = formCourses.filter((course) => !dbCourses.includes(course));
+    } else {
+      newCourses = formCourses;
+    }
 
     // Insert only new courses
     for (let course of newCourses) {
@@ -146,9 +152,14 @@ const detachCourses = async (req, res) => {
     const formCourses = courses.map(Number); // Ensure they are numbers
 
     // Find courses that need to be detached
-    const detachCourses = dbCourses.filter((course) =>
-      formCourses.includes(course)
-    );
+    let detachCourses;
+    if (dbCourses.length > 0 || dbCourses === null) {
+      detachCourses = dbCourses.filter((course) =>
+        formCourses.includes(course)
+      );
+    } else {
+      detachCourses = formCourses;
+    }
 
     // Detach the specified courses
     for (let course_id of detachCourses) {
@@ -175,9 +186,16 @@ const detachCourses = async (req, res) => {
 const viewCourses = async (req, res) => {
   const { id } = req.params; // programme id
   const course_ids = await ProgrammeCourse.findCoursesByProgramme(id);
-  const courses = [];
-  for (let course_id of course_ids) {
-    const course = await Course.findById(course_id);
+  let courses = [];
+  if (Array.isArray(course_ids)) {
+    for (let course_id of course_ids) {
+      const course = await Course.findById(course_id);
+      courses.push(course);
+    }
+  } else if (course_ids === null) {
+    courses = "No course attached";
+  } else {
+    const course = await Course.findById(course_ids[0]);
     courses.push(course);
   }
   res.json({
