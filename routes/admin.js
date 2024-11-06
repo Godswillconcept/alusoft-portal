@@ -27,6 +27,8 @@ const {
   programmeEnroll,
   paymentBalance,
   studentLogin,
+  resetStudentPassword,
+  forgetStudentPassword,
 } = require("../controllers/studentController");
 const {
   getAllInstructors,
@@ -80,6 +82,8 @@ router.delete("/students/:id/delete", deleteStudent);
 router.post("/students/:id/enroll", programmeEnroll);
 router.get("/students/:id/programmes/:programme_id/balance", paymentBalance);
 router.post("/students/login", studentLogin);
+router.post("/students/forgot-password", forgetStudentPassword);
+router.post("/students/reset-password", resetStudentPassword);
 
 // instructor routes
 router.get("/instructors", getAllInstructors);

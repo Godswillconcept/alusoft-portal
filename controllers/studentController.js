@@ -1,8 +1,12 @@
+require("dotenv").config();
+const transporter = require("../middlewares/emailConfig");
+const ResetPasswordOTP = require("../models/ResetPasswordOTP");
 const Student = require("../models/Student");
 const StudentProgramme = require("../models/StudentProgramme");
 const conn = require("../models/connection");
 const bcrypt = require("bcrypt");
 const { unlinkSync } = require("fs");
+const otpGenerator = require("otp-generator");
 
 const getAllStudents = async (req, res) => {
   const students = await Student.findAll();
@@ -260,6 +264,66 @@ const studentLogin = async (req, res) => {
   });
 };
 
+const forgetStudentPassword = async (req, res) => {
+  const { email } = req.body;
+  const otp = otpGenerator.generate(6, {
+    digits: true,
+    upperCaseAlphabets: true,
+    specialChars: true,
+    lowerCaseAlphabets: true,
+  });
+
+  data = { email, otp };
+  await ResetPasswordOTP.save(data);
+
+  var mailOptions = {
+    from: process.env.MAIL,
+    to: email,
+    subject: "Reset Password",
+    text: `An OTP has been sent to this email for resetting password. Please enter the OTP on the password reset page to reset your password. The OTP is ${otp}. It will expire in 10 minutes.`,
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent: " + info.response);
+    }
+  });
+
+  res.json({ status: "success", message: "OTP sent successfully" });
+};
+
+const resetStudentPassword = async (req, res) => {
+  const { email, otp, password } = req.body;
+  const student = await Student.findByEmail(email);
+  if (!student) {
+    return res.json({
+      status: "failed",
+      message: "Student does not exist",
+    });
+  }
+  let storedOtp = await ResetPasswordOTP.findByEmail(email);
+  storedOtp = storedOtp.pop();
+  console.log('storedOtp', storedOtp)
+  if (!storedOtp) {
+    return res.json({
+      status: "failed",
+      message: "Invalid OTP",
+    });
+  }
+  if (storedOtp.otp !== otp) {
+    return res.json({ status: "failed", message: "Invalid OTP" });
+  }
+  if (storedOtp.expirationTime < Date.now()) {
+    return res.json({ status: "failed", message: "OTP has expired" });
+  }
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  student.password = hashedPassword;
+  await student.update();
+  await ResetPasswordOTP.delete(email);
+  res.json({ status: "success", message: "Password reset successful" });
+};
 module.exports = {
   getAllStudents,
   getStudentById,
@@ -269,4 +333,6 @@ module.exports = {
   programmeEnroll,
   paymentBalance,
   studentLogin,
+  forgetStudentPassword,
+  resetStudentPassword,
 };
