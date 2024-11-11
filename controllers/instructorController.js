@@ -1,8 +1,10 @@
 const Instructor = require("../models/Instructor");
 const InstructorCourse = require("../models/InstructorCourse");
 const Course = require("../models/Course");
+const ResetPasswordOTP = require("../models/ResetPasswordOTP");
 const bcrypt = require("bcrypt");
 const { unlinkSync } = require("fs");
+const jwt = require("jsonwebtoken");
 
 const getAllInstructors = async (req, res) => {
   const instructors = await Instructor.findAll();
@@ -84,12 +86,22 @@ const createInstructor = async (req, res) => {
     hashedPassword,
     status
   );
+
   try {
     instructor = await instructor.create();
+    const token = jwt.sign(
+      {
+        username: instructor.email,
+        password: instructor.password,
+        exp: new Date().getTime() + 60 * 60 * 24 * 7, // 7 days
+      },
+      process.env.JSON_KEY
+    );
     res.json({
       status: "Success",
       message: "Instructor created successfully",
       data: instructor,
+      token,
     });
   } catch (error) {
     unlinkSync("uploads/instructors/" + instructor.photo);
@@ -296,11 +308,82 @@ const instructorLogin = async (req, res) => {
       message: "Invalid password",
     });
   }
+
+  const token = jwt.sign(
+    {
+      username: instructor.email,
+      password: instructor.password,
+      exp: new Date().getTime() + 60 * 60 * 24 * 7, // 7 days
+    },
+    process.env.JSON_KEY
+  );
+
   return res.json({
     status: "success",
     message: "Instructor login successfully",
-    data: instructor,
+    data: token,
   });
+};
+
+const forgetInstructorPassword = async (req, res) => {
+  const { email } = req.body;
+  const otp = otpGenerator.generate(6, {
+    digits: true,
+    upperCaseAlphabets: true,
+    specialChars: true,
+    lowerCaseAlphabets: true,
+  });
+
+  data = { email, otp };
+  await ResetPasswordOTP.save(data);
+
+  var mailOptions = {
+    from: process.env.MAIL,
+    to: email,
+    subject: "Reset Password",
+    text: `An OTP has been sent to this email for resetting password. Please enter the OTP on the password reset page to reset your password. The OTP is ${otp}. It will expire in 30 minutes.`,
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent: " + info.response);
+    }
+  });
+
+  res.json({ status: "success", message: "OTP sent successfully" });
+};
+
+const resetInstructorPassword = async (req, res) => {
+  const { email, otp, password } = req.body;
+  const instructor = await Instructor.findByEmail(email);
+  if (!instructor) {
+    return res.json({
+      status: "failed",
+      message: "Instructor does not exist",
+    });
+  }
+  let storedOtp = await ResetPasswordOTP.findByEmail(email);
+  storedOtp = storedOtp.pop();
+  console.log("storedOtp", storedOtp);
+  if (!storedOtp) {
+    return res.json({
+      status: "failed",
+      message: "Invalid OTP",
+    });
+  }
+  if (storedOtp.otp !== otp) {
+    return res.json({ status: "failed", message: "Invalid OTP" });
+  }
+  if (storedOtp.expirationTime < Date.now()) {
+    return res.json({ status: "failed", message: "OTP has expired" });
+  }
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  instructor.password = hashedPassword;
+  await instructor.update();
+  await ResetPasswordOTP.delete(email);
+  res.json({ status: "success", message: "Password reset successful" });
 };
 
 module.exports = {
@@ -313,4 +396,6 @@ module.exports = {
   unbindCourses,
   showCourses,
   instructorLogin,
+  resetInstructorPassword,
+  forgetInstructorPassword,
 };

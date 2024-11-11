@@ -34,11 +34,11 @@ class Programme {
       for (let row of rows) {
         results.push(
           new Programme(
-            row.id,
             row.name,
             row.description,
             row.session,
-            row.tuition
+            row.tuition,
+            row.id,
           )
         );
       }

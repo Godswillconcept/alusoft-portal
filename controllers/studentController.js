@@ -7,6 +7,7 @@ const conn = require("../models/connection");
 const bcrypt = require("bcrypt");
 const { unlinkSync } = require("fs");
 const otpGenerator = require("otp-generator");
+const jwt = require("jsonwebtoken");
 
 const getAllStudents = async (req, res) => {
   const students = await Student.findAll();
@@ -92,12 +93,23 @@ const createStudent = async (req, res) => {
     `students/${fileName}`,
     status
   );
+
+  const token = jwt.sign(
+    {
+      username: student.email,
+      password: student.password,
+      exp: new Date().getTime() + 60 * 60 * 24 * 7, // 7 days
+    },
+    process.env.JSON_KEY
+  );
+
   try {
     student = await student.create();
     res.json({
       status: "success",
       message: "New student created successfully",
       data: student,
+      token: token,
     });
   } catch (error) {
     unlinkSync(`uploads/students${student.photo}`); // remove photo if there is error
@@ -232,11 +244,18 @@ const paymentBalance = async (req, res) => {
   const [rows] = await conn.execute(query, [programme_id]); // where programme_id refers to programme id
   tuition = rows[0].tuition;
   amount_balance = tuition - amount_paid;
-  res.json({
-    status: "success",
-    message: "Student balance retrieved successfully",
-    data: { amount_paid, amount_balance, tuition },
-  });
+  if (amount_balance == 0) {
+    res.json({
+      status: "success",
+      message: "Student has paid the full tuition",
+    });
+  } else {
+    res.json({
+      status: "success",
+      message: "Student balance retrieved successfully",
+      data: { amount_paid, amount_balance, tuition },
+    });
+  }
 };
 
 const studentLogin = async (req, res) => {
@@ -257,10 +276,19 @@ const studentLogin = async (req, res) => {
     });
   }
 
+  const token = jwt.sign(
+    {
+      username: student.email,
+      password: student.password,
+      exp: new Date().getTime() + 60 * 60 * 24 * 7, // 7 days
+    },
+    process.env.JSON_KEY
+  );
+
   return res.json({
     status: "success",
     message: "Student login successfully",
-    data: student,
+    data: token,
   });
 };
 
@@ -305,7 +333,7 @@ const resetStudentPassword = async (req, res) => {
   }
   let storedOtp = await ResetPasswordOTP.findByEmail(email);
   storedOtp = storedOtp.pop();
-  console.log('storedOtp', storedOtp)
+  console.log("storedOtp", storedOtp);
   if (!storedOtp) {
     return res.json({
       status: "failed",
@@ -324,6 +352,7 @@ const resetStudentPassword = async (req, res) => {
   await ResetPasswordOTP.delete(email);
   res.json({ status: "success", message: "Password reset successful" });
 };
+
 module.exports = {
   getAllStudents,
   getStudentById,
